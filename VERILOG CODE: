@@ -1,0 +1,56 @@
+timescale 1ns / 1ps
+
+module password_motor_control(
+    input clk, reset_n,
+    input [1:0] digit1, digit2, // 2-bit input (0-3)
+    output reg [3:0] stepper,   // stepper motor control lines
+    output reg correct_password_led
+);
+
+// Define the ONLY correct password: digit1 = 1, digit2 = 2
+parameter CORRECT_DIGIT1 = 2'd1;
+parameter CORRECT_DIGIT2 = 2'd2;
+parameter DELAY = 24'd10_000_000; // parameterized delay
+
+// Stepper motor sequence (Full-step)
+reg [3:0] steps [0:3];
+initial begin
+    steps[0] = 4'b1000;
+    steps[1] = 4'b1100;
+    steps[2] = 4'b0110;
+    steps[3] = 4'b0011;
+end
+
+reg [1:0] step_index;
+reg [23:0] delay_counter; // slow down motor speed
+
+always @(posedge clk or negedge reset_n) begin
+    if (!reset_n) begin
+        step_index <= 0;
+        stepper <= 4'b0000;
+        delay_counter <= 0;
+        correct_password_led <= 0;
+    end
+    else begin
+        // Only allow motor control if both digits match the correct password
+        if ((digit1 == CORRECT_DIGIT1) && (digit2 == CORRECT_DIGIT2)) begin
+            correct_password_led <= 1;
+
+            // Slow motor rotation using counter
+            delay_counter <= delay_counter + 1;
+            if (delay_counter >= DELAY) begin
+                step_index <= (step_index == 3) ? 0 : step_index + 1; // wrap around
+                stepper <= steps[(step_index == 3) ? 0 : step_index + 1]; // preload next step
+                delay_counter <= 0;
+            end
+        end
+        else begin
+            correct_password_led <= 0;
+            stepper <= 4'b0000; // motor off
+            step_index <= 0;
+            delay_counter <= 0;
+        end
+    end
+end
+
+endmodule
