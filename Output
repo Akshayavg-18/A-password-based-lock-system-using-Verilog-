@@ -1,0 +1,21 @@
+Results
+When the wrong password is entered:
+The LED stays OFF.
+The motor does not rotate (stepper output is 0000).
+
+
+
+ 
+When the correct password (digit1 = 1, digit2 = 2) is entered:
+The LED turns ON.
+The stepper motor starts rotating, following the correct step pattern:
+o   1000 → 1100 → 0110 → 0011, and repeats.The motor steps slowly due to built in dealy
+
+
+
+o   Discussion
+The design works as expected:
+It only activates the motor when the correct password is entered.
+The LED gives a clear signal when access is granted.
+The delay helps slow down motor movement for better visibility.
+The system resets and turns off the motor when the password is wrong again.
